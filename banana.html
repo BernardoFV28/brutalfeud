@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feudo Brutal: O Último Núcleo</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           PALETA DE CORES E VARIÁVEIS
+           ========================================= */
+        :root {
+            --void:        #020202;
+            --surface:     #0c0c0c;
+            --panel:       #111111;
+            --border:      #2a2318;
+            --border-hot:  #4a3820;
+            --text:        #c8b89a;
+            --text-dim:    #6b5f4e;
+            --gold:        #c49a2e;
+            --gold-dark:   #8a6c2a;
+            --blood:       #8b0000;
+            --blood-dim:   #3a0505;
+            --green-bio:   #2d5c1a;
+            --amber:       #c47000;
+            --copper:      #8b5a00;
+        }
+
+        /* =========================================
+           RESET E TIPOGRAFIA BASE
+           ========================================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--void);
+            color: var(--text);
+            font-family: 'Crimson Text', serif;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* =========================================
+           KEYFRAMES OBRIGATÓRIOS
+           ========================================= */
+        @keyframes pulse-organic {
+            0%,100% { transform: scale(1); }
+            50%      { transform: scale(1.015); }
+        }
+
+        @keyframes flicker {
+            0%,100% { opacity: 1; }
+            20%     { opacity: 0.88; }
+            60%     { opacity: 0.95; }
+            80%     { opacity: 0.84; }
+        }
+
+        @keyframes shake-crisis {
+            0%,100% { transform: translateX(0); }
+            20%     { transform: translateX(-3px); }
+            40%     { transform: translateX(3px); }
+            60%     { transform: translateX(-2px); }
+            80%     { transform: translateX(1px); }
+        }
+
+        @keyframes steam-glow {
+            0%,100% { box-shadow: inset 0 0 8px rgba(196,112,0,0.3); }
+            50%     { box-shadow: inset 0 0 16px rgba(196,112,0,0.6); }
+        }
+
+        @keyframes slideInLog {
+            from { transform: translateY(8px); opacity: 0; }
+            to   { transform: translateY(0);   opacity: 1; }
+        }
+
+        @keyframes bar-fill-in {
+            from { width: 0%; }
+        }
+
+        /* =========================================
+           SISTEMA DE CAMADAS (Z-INDEX)
+           ========================================= */
+        .vignette {
+            position: absolute; inset: 0; z-index: 5; pointer-events: none;
+            box-shadow: inset 0 0 150px rgba(0,0,0,0.95);
+        }
+
+        #ui-layer {
+            position: absolute; inset: 0; z-index: 10; pointer-events: none;
+            display: flex; flex-direction: column; padding: 16px;
+        }
+
+        /* Reativar interação dentro dos painéis da UI */
+        header, #panel-left, #panel-right { pointer-events: auto; }
+
+        /* =========================================
+           HEADER — BARRA DE RECURSOS
+           ========================================= */
+        header {
+            flex-shrink: 0; height: 72px; width: 100%;
+            background: var(--surface); border-bottom: 1px solid var(--border-hot);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 24px; position: relative;
+        }
+
+        .header-resources { display: flex; gap: 16px; }
+
+        .res-capsule {
+            border: 1px solid var(--border-hot); background: rgba(17,17,17,0.8);
+            padding: 8px 16px; display: flex; align-items: center; gap: 12px;
+            transition: border-color 0.2s; cursor: default;
+        }
+        .res-capsule:hover { border-color: var(--gold); }
+
+        .res-icon { width: 18px; height: 18px; color: var(--text-dim); }
+        
+        .res-info { display: flex; flex-direction: column; }
+        .res-label { font-size: 9px; font-style: italic; color: var(--text-dim); text-transform: uppercase; line-height: 1; margin-bottom: 4px; }
+        .res-value { font-family: 'Share Tech Mono', monospace; font-size: 24px; color: var(--text); font-weight: bold; line-height: 1; }
+
+        .header-time { display: flex; align-items: center; gap: 16px; }
+        .time-box { display: flex; align-items: baseline; gap: 6px; padding: 4px 12px; border: 1px solid transparent; transition: border-color 0.3s; }
+        .time-label { font-size: 10px; font-style: italic; color: var(--text-dim); }
+        #days-left { font-family: 'Share Tech Mono', monospace; font-size: 28px; color: var(--blood); font-weight: bold; }
+        .time-suffix { font-family: 'Cinzel', serif; font-size: 12px; color: var(--text-dim); }
+        
+        .urgent { border-color: var(--blood) !important; background: rgba(139,0,0,0.1); }
+        .urgent #days-left { animation: flicker 0.5s infinite alternate; }
+
+        .v-sep { width: 1px; height: 32px; background: var(--border); }
+        #day-counter { font-family: 'Cinzel', serif; font-weight: 900; font-size: 32px; color: var(--text); letter-spacing: 2px; }
+
+        /* =========================================
+           ESTRUTURA DO CORPO (BODY PANELS)
+           ========================================= */
+        .ui-body {
+            display: flex; flex-direction: row; flex-grow: 1; margin-top: 16px; gap: 16px; overflow: hidden;
+        }
+        #center-void { flex-grow: 1; } /* Área transparente p/ visualizar partículas */
+
+        /* =========================================
+           PAINEL ESQUERDO — ENGENHARIA
+           ========================================= */
+        #panel-left {
+            width: 340px; background: var(--panel); border: 1px solid var(--border);
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,200,100,0.03), 0 0 0 1px var(--border), 0 8px 32px rgba(0,0,0,0.6);
+            display: flex; flex-direction: column; position: relative;
+        }
+
+        #panel-left::before {
+            content: ""; position: absolute; inset: 0; pointer-events: none;
+            background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px);
+        }
+
+        .panel-title-eng {
+            font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; color: var(--text);
+            display: flex; align-items: center; justify-content: center; margin: 16px; gap: 12px; position: relative; z-index: 1;
+        }
+        .panel-title-eng::before, .panel-title-eng::after { content: ""; height: 1px; flex-grow: 1; background: var(--border); max-width: 50px; }
+
+        #city-grid { flex-grow: 1; overflow-y: auto; padding: 0 16px 16px; position: relative; z-index: 1; }
+
+        /* Scrollbar temática */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--void); border-left: 1px solid var(--border); }
+        ::-webkit-scrollbar-thumb { background: var(--border-hot); }
+
+        /* =========================================
+           PAINEL DIREITO — NÚCLEO TÉRMICO E LOG
+           ========================================= */
+        #panel-right {
+            width: 420px; display: flex; flex-direction: column; gap: 16px;
+        }
+
+        .thermal-core-panel {
+            background: var(--panel); border: 1px solid var(--border); padding: 16px;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.9); position: relative;
+        }
+
+        .core-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .core-title { font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        
+        #colony-temp { font-family: 'Share Tech Mono', monospace; font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 3px; }
+        #colony-temp.stable { background: var(--green-bio); color: #7fff7f; }
+        #colony-temp.freezing { background: var(--blood-dim); color: #ff6b6b; animation: pulse-organic 1s infinite; }
+
+        .steam-container { display: flex; flex-direction: column; gap: 6px; }
+        .steam-labels { display: flex; justify-content: space-between; align-items: baseline; }
+        .steam-label-text { font-size: 10px; color: var(--text-dim); }
+        #colony-steam { font-family: 'Share Tech Mono', monospace; font-size: 14px; color: var(--text); }
+
+        .steam-track { border: 1px solid var(--border-hot); background: var(--surface); height: 20px; border-radius: 2px; position: relative; overflow: hidden; }
+        #steam-meter { height: 100%; border-radius: 2px; transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); position: relative; width: 0%; }
+        #steam-meter::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: rgba(255,255,255,0.15); }
+        
+        #steam-meter.lvl-high { background: linear-gradient(90deg, #c47000, #ffcc44, #fff8e0); animation: steam-glow 2s infinite; }
+        #steam-meter.lvl-mid { background: linear-gradient(90deg, #8b0000, #c47000); }
+        #steam-meter.lvl-low { background: var(--blood); animation: flicker 0.3s infinite; }
+
+        /* Log de Eventos */
+        .log-panel {
+            background: rgba(0,0,0,0.3); border-top: 1px solid var(--border); flex-grow: 1;
+            display: flex; flex-direction: column; padding: 16px; position: relative;
+            mask-image: linear-gradient(transparent, black 15%); -webkit-mask-image: linear-gradient(transparent, black 15%);
+            overflow: hidden; border-left: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+        }
+
+        .log-title { font-family: 'Cinzel', serif; font-size: 10px; color: var(--text-dim); margin-bottom: 12px; }
+        
+        #colony-log { display: flex; flex-direction: column; justify-content: flex-end; flex-grow: 1; overflow-y: auto; gap: 2px; padding-right: 8px;}
+        
+        #colony-log div {
+            font-family: 'Share Tech Mono', monospace; font-size: 11px; line-height: 1.6;
+            padding: 6px 8px 6px 12px; border-left: 2px solid var(--copper);
+            animation: slideInLog 0.3s ease forwards; background: rgba(139, 90, 0, 0.03); color: var(--text);
+        }
+        #colony-log div.type-critical { border-left-color: var(--blood); background: rgba(139,0,0,0.06); color: #ff6b6b; }
+        #colony-log div.type-success { border-left-color: var(--green-bio); background: rgba(45, 92, 26, 0.06); color: #7fff7f; }
+
+        /* =========================================
+           TELAS DE SOBREPOSIÇÃO (OVERLAYS)
+           ========================================= */
+        #combat-overlay {
+            position: absolute; inset: 0; z-index: 50;
+            background: rgba(58,5,5,0.96); border-top: 8px solid var(--blood); border-bottom: 8px solid var(--blood);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto;
+        }
+        #combat-overlay.hidden { display: none !important; }
+        #combat-overlay::before {
+            content: ""; position: absolute; inset: 0; pointer-events: none;
+            background: repeating-linear-gradient(transparent, transparent 8px, rgba(0,0,0,0.25) 8px, rgba(0,0,0,0.25) 10px);
+        }
+        .combat-title {
+            font-family: 'Cinzel', serif; font-weight: 900; font-size: clamp(2.5rem, 6vw, 5rem);
+            color: #cc0000; letter-spacing: 0.3em; text-shadow: 0 0 30px rgba(200,0,0,0.5), 2px 2px 0 #000;
+            animation: flicker 3s infinite; position: relative; z-index: 1; text-align: center;
+        }
+        .combat-subtitle {
+            font-family: 'Crimson Text', serif; font-style: italic; font-size: 1.2rem; color: var(--text-dim);
+            position: relative; z-index: 1; margin-top: 16px;
+        }
+
+        #loading-screen {
+            position: absolute; inset: 0; z-index: 100; background: var(--void);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto;
+        }
+        .fade-out { opacity: 0; pointer-events: none; transition: opacity 1.5s, filter 1s; filter: blur(4px); }
+        .load-title { font-family: 'Cinzel', serif; font-weight: 900; font-size: 2rem; color: var(--gold); letter-spacing: 12px; margin-bottom: 8px; text-shadow: 0 0 20px rgba(196,154,46,0.3); }
+        .load-subtitle { font-family: 'Crimson Text', serif; font-style: italic; font-size: 1rem; color: var(--text-dim); margin-bottom: 40px; }
+        .load-kernel { font-family: 'Share Tech Mono', monospace; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 12px; }
+        .load-bar-track { width: 200px; height: 2px; background: var(--surface); position: relative; overflow: hidden; }
+        .load-bar-fill { position: absolute; top: 0; left: 0; height: 100%; background: var(--gold); animation: bar-fill-in 0.8s linear forwards; }
+    </style>
+</head>
+<body>
+
+    <div id="loading-screen">
+        <h1 class="load-title">FEUDO BRUTAL</h1>
+        <h2 class="load-subtitle">O ÚLTIMO NÚCLEO</h2>
+        <div class="load-kernel">INICIANDO KERNEL...</div>
+        <div class="load-bar-track"><div class="load-bar-fill"></div></div>
+    </div>
+
+    <canvas id="bg-canvas" style="position:absolute;inset:0;z-index:0;pointer-events:none;width:100%;height:100%"></canvas>
+    <div class="vignette"></div>
+
+    <div id="ui-layer">
+        
+        <header>
+            <div class="header-resources">
+                <div class="res-capsule">
+                    <svg viewBox="0 0 24 24" class="res-icon" stroke="currentColor" fill="none" stroke-width="2"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke-dasharray="4 4"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>
+                    <div class="res-info">
+                        <span class="res-label">BIOMASSA</span>
+                        <span class="res-value" id="res-biomass">0</span>
+                    </div>
+                </div>
+                <div class="res-capsule">
+                    <svg viewBox="0 0 24 24" class="res-icon" stroke="currentColor" fill="none" stroke-width="2"><path d="M12 2L19.5 6.5V15.5L12 20L4.5 15.5V6.5L12 2Z"/><circle cx="12" cy="11" r="3" fill="currentColor"/></svg>
+                    <div class="res-info">
+                        <span class="res-label">COBRE</span>
+                        <span class="res-value" id="res-copper">0</span>
+                    </div>
+                </div>
+                <div class="res-capsule">
+                    <svg viewBox="0 0 24 24" class="res-icon" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.5 21V19C5.5 16.7909 7.29086 15 9.5 15H14.5C16.7091 15 18.5 16.7909 18.5 19V21"/></svg>
+                    <div class="res-info">
+                        <span class="res-label">POPULAÇÃO</span>
+                        <span class="res-value" id="res-population">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-time">
+                <div class="time-box">
+                    <span class="time-label">ATAQUE EM</span>
+                    <span id="days-left">0</span>
+                    <span class="time-suffix">DIAS</span>
+                </div>
+                <div class="v-sep"></div>
+                <div id="day-counter">DIA 01</div>
+            </div>
+        </header>
+
+        <div class="ui-body">
+            
+            <aside id="panel-left">
+                <div class="panel-title-eng">ENGENHARIA</div>
+                <div id="city-grid">
+                    </div>
+            </aside>
+
+            <div id="center-void"></div>
+
+            <aside id="panel-right">
+                
+                <div class="thermal-core-panel">
+                    <div class="core-header">
+                        <div class="core-title">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--amber)" fill="var(--amber)" stroke-width="1"><path d="M12 2C12 2 5 9 5 14C5 17.866 8.13401 21 12 21C15.866 21 19 17.866 19 14C19 9 12 2 12 2ZM12 17C10.3431 17 9 15.6569 9 14C9 12.3431 12 8 12 8C12 8 15 12.3431 15 14C15 15.6569 13.6569 17 12 17Z"/></svg>
+                            NÚCLEO TÉRMICO
+                        </div>
+                        <div id="colony-temp" class="stable">ESTÁVEL</div>
+                    </div>
+                    
+                    <div class="steam-container">
+                        <div class="steam-labels">
+                            <span class="steam-label-text">PRESSÃO INTERNA</span>
+                            <span id="colony-steam">0%</span>
+                        </div>
+                        <div class="steam-track">
+                            <div id="steam-meter" class="lvl-high"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="log-panel">
+                    <div class="log-title">REGISTRO DE OCORRÊNCIAS</div>
+                    <div id="colony-log">
+                        </div>
+                </div>
+
+            </aside>
+        </div>
+    </div>
+
+    <div id="combat-overlay" class="hidden">
+        <h1 class="combat-title">INVASÃO DETECTADA</h1>
+        <h2 class="combat-subtitle">Os horrores da periferia romperam os portões do Feudo.</h2>
+    </div>
+
+    <script>
+        (function(){
+            const c = document.getElementById('bg-canvas');
+            const ctx = c.getContext('2d');
+            c.width = window.innerWidth;
+            c.height = window.innerHeight;
+            window.addEventListener('resize', () => { c.width = innerWidth; c.height = innerHeight; });
+            const N = 55;
+            const particles = Array.from({length: N}, () => ({
+                x: Math.random() * c.width,
+                y: Math.random() * c.height,
+                r: 1.5 + Math.random() * 3,
+                vy: -(0.15 + Math.random() * 0.45),
+                vx: (Math.random() - 0.5) * 0.2,
+                op: 0.04 + Math.random() * 0.1,
+                phase: Math.random() * Math.PI * 2
+            }));
+            let last = 0;
+            function draw(ts) {
+                requestAnimationFrame(draw);
+                if (ts - last < 33) return;
+                last = ts;
+                ctx.fillStyle = 'rgba(2,2,2,0.18)';
+                ctx.fillRect(0, 0, c.width, c.height);
+                particles.forEach(p => {
+                    p.phase += 0.012;
+                    p.x += p.vx + Math.sin(p.phase) * 0.25;
+                    p.y += p.vy;
+                    if (p.y < -8) { p.y = c.height + 8; p.x = Math.random() * c.width; }
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(138,108,42,${p.op})`;
+                    ctx.fill();
+                });
+            }
+            requestAnimationFrame(draw);
+        })();
+    </script>
+
+    <script>
+        (function(){
+            const steamMeter = document.getElementById('steam-meter');
+            if(steamMeter) {
+                const observer = new MutationObserver(() => {
+                    const w = parseFloat(steamMeter.style.width) || 0;
+                    steamMeter.classList.remove('lvl-high', 'lvl-mid', 'lvl-low');
+                    if (w >= 70) steamMeter.classList.add('lvl-high');
+                    else if (w >= 30) steamMeter.classList.add('lvl-mid');
+                    else steamMeter.classList.add('lvl-low');
+                });
+                observer.observe(steamMeter, { attributes: true, attributeFilter: ['style'] });
+            }
+        })();
+    </script>
+
+    <script type="module">    
+    // =====================================================================
+// FEUDO BRUTAL — KERNEL UNIFICADO v2.0
+// UIManager · WorldEngine · GameCore · CrisisSystem
+// =====================================================================
+
+// 1. SISTEMA DE INTERFACE (UI)
+const UIManager = {
+    _prev: {},
+
+    init(catalog) {
+        this.renderCatalog(catalog);
+        this.addLog("Kernel v2.0 inicializado. Bem-vindo ao Feudo Brutal.", "success");
+    },
+
+    _svgIcon(type) {
+        const s = (body) => `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">${body}</svg>`;
+        const icons = {
+            mina: s(`<g stroke="#8b5a00" stroke-width="1.4" stroke-linecap="round">
+                <polygon points="11,3 14.5,8 14.5,14 11,19 7.5,14 7.5,8" />
+                <line x1="11" y1="3" x2="11" y2="19"/><line x1="7.5" y1="8" x2="14.5" y2="8"/>
+                <line x1="7.5" y1="14" x2="14.5" y2="14"/>
+            </g>`),
+            fazenda: s(`<g stroke="#2d5c1a" stroke-width="1.4" fill="none">
+                <circle cx="11" cy="11" r="3"/>
+                <path d="M11,8 C11,8 6,5 5,1"/>
+                <path d="M11,8 C11,8 16,5 17,1"/>
+                <path d="M8.5,12.5 C8.5,12.5 4,15 3,19"/>
+                <path d="M13.5,12.5 C13.5,12.5 18,15 19,19"/>
+                <path d="M11,14 C11,14 11,17 11,21"/>
+            </g>`),
+            torre: s(`<g stroke="#8b0000" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="11,2 20,20 2,20"/>
+                <line x1="11" y1="10" x2="11" y2="16"/>
+                <line x1="8" y1="14" x2="14" y2="14"/>
+            </g>`),
+            caldeira: s(`<g stroke="#c47000" stroke-width="1.4" stroke-linecap="round">
+                <rect x="4" y="9" width="14" height="10" rx="1"/>
+                <line x1="8" y1="9" x2="8" y2="5"/><line x1="14" y1="9" x2="14" y2="5"/>
+                <line x1="6" y1="5" x2="10" y2="5"/><line x1="12" y1="5" x2="16" y2="5"/>
+                <line x1="4" y1="13" x2="18" y2="13"/>
+            </g>`),
+            muralha: s(`<g stroke="#c8b89a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2,19 L2,11 L5,11 L5,8 L8,8 L8,11 L11,11 L11,8 L14,8 L14,11 L17,11 L17,8 L20,8 L20,11 L20,19 Z"/>
+            </g>`),
+            oraculo: s(`<g stroke="#8a6c2a" stroke-width="1.4" fill="none">
+                <path d="M2,11 C6,4 16,4 20,11 C16,18 6,18 2,11 Z"/>
+                <circle cx="11" cy="11" r="3"/>
+                <circle cx="11" cy="11" r="1" fill="#8a6c2a"/>
+            </g>`),
+        };
+        return icons[type] || s(`<circle cx="11" cy="11" r="7" stroke="#6b5f4e" stroke-width="1.4"/>`);
+    },
+
+    renderCatalog(catalog) {
+        const grid = document.getElementById('city-grid');
+        grid.innerHTML = '';
+
+        // Separar por categoria
+        const categories = {
+            'Produção': ['mina','fazenda','caldeira'],
+            'Defesa':   ['torre','muralha'],
+            'Ocultismo':['oraculo']
+        };
+
+        Object.entries(categories).forEach(([catName, ids]) => {
+            const catItems = catalog.filter(b => ids.includes(b.id));
+            if (!catItems.length) return;
+
+            const catLabel = document.createElement('div');
+            catLabel.style.cssText = `
+                font-family:'Cinzel',serif; font-size:9px; letter-spacing:.2em;
+                color:var(--text-dim); text-transform:uppercase;
+                padding:6px 0 4px; border-bottom:1px solid var(--border);
+                margin-bottom:6px; margin-top:8px;
+            `;
+            catLabel.textContent = `— ${catName} —`;
+            grid.appendChild(catLabel);
+
+            catItems.forEach(bldg => {
+                const card = document.createElement('div');
+                const builtCount = (GameCore.placedBuildings || []).filter(b => b.type === bldg.id).length;
+                const canAfford = (GameCore.state?.resources?.copper || 0) >= bldg.cost;
+
+                card.style.cssText = `
+                    background:rgba(17,17,17,0.85); border:1px solid var(--border);
+                    padding:10px 12px; margin-bottom:6px; cursor:${canAfford ? 'pointer' : 'not-allowed'};
+                    transition:border-color .2s, background .2s; display:flex; gap:10px;
+                    align-items:center; opacity:${canAfford ? '1' : '0.4'};
+                    position:relative; overflow:hidden;
+                `;
+
+                card.innerHTML = `
+                    ${this._svgIcon(bldg.id)}
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-family:'Cinzel',serif;font-weight:700;font-size:12px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${bldg.name}</div>
+                        <div style="font-family:'Crimson Text',serif;font-style:italic;font-size:11px;color:var(--text-dim);margin-top:2px;line-height:1.3;">${bldg.desc}</div>
+                        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--copper);margin-top:5px;display:flex;gap:10px;align-items:center;">
+                            <span>⚙ ${bldg.cost} Cobre</span>
+                            ${builtCount > 0 ? `<span style="color:var(--gold)">✦ ×${builtCount}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+
+                if (canAfford) {
+                    card.onmouseenter = () => {
+                        card.style.borderColor = 'var(--gold)';
+                        card.style.background = 'rgba(26,20,10,0.95)';
+                    };
+                    card.onmouseleave = () => {
+                        card.style.borderColor = 'var(--border)';
+                        card.style.background = 'rgba(17,17,17,0.85)';
+                    };
+                    card.onclick = () => {
+                        WorldEngine.setConstructionPreview(bldg.id);
+                        this.addLog(`Sonda ativada: ${bldg.name}. Clique no grid para enraizar.`, "normal");
+                    };
+                }
+
+                grid.appendChild(card);
+            });
+        });
+    },
+
+    updateResource(id, value) {
+        const el = document.getElementById(`res-${id}`);
+        if (!el) return;
+
+        const prev = this._prev[id] ?? value;
+        const delta = value - prev;
+        this._prev[id] = value;
+
+        el.textContent = value;
+
+        if (delta !== 0) {
+            const parent = el.closest('[style*="position"]') || el.parentElement;
+            const floater = document.createElement('div');
+            floater.textContent = delta > 0 ? `+${delta}` : `${delta}`;
+            floater.style.cssText = `
+                position:absolute; right:0; top:-4px;
+                font-family:'Share Tech Mono',monospace; font-size:11px; font-weight:700;
+                color:${delta > 0 ? '#5fad3e' : '#cc3333'};
+                pointer-events:none; z-index:99;
+                animation:floatUp 1.5s ease forwards;
+            `;
+            // Injetar keyframe se ainda não existir
+            if (!document.getElementById('floatup-style')) {
+                const st = document.createElement('style');
+                st.id = 'floatup-style';
+                st.textContent = `
+                    @keyframes floatUp {
+                        0%   { transform:translateY(0);   opacity:1; }
+                        100% { transform:translateY(-28px); opacity:0; }
+                    }
+                    @keyframes slideInLog {
+                        from { transform:translateY(7px); opacity:0; }
+                        to   { transform:translateY(0);   opacity:1; }
+                    }
+                `;
+                document.head.appendChild(st);
+            }
+            parent.style.position = 'relative';
+            parent.appendChild(floater);
+            floater.addEventListener('animationend', () => floater.remove());
+        }
+    },
+
+    updateSteam(value) {
+        const steamText = document.getElementById('colony-steam');
+        const steamBar  = document.getElementById('steam-meter');
+        if (steamText) steamText.textContent = `${value}%`;
+        if (!steamBar) return;
+
+        steamBar.style.width = `${value}%`;
+        steamBar.style.transition = 'width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+
+        if (value > 60) {
+            steamBar.className = 'lvl-high';
+        } else if (value > 30) {
+            steamBar.className = 'lvl-mid';
+        } else {
+            steamBar.className = 'lvl-low';
+        }
+    },
+
+    updateTime(day, daysLeft) {
+        const dc = document.getElementById('day-counter');
+        const dl = document.getElementById('days-left');
+        if (dc) dc.textContent = `DIA ${day < 10 ? '0'+day : day}`;
+        if (dl) {
+            dl.textContent = daysLeft;
+            const box = dl.closest('[style]') || dl.parentElement;
+            if (daysLeft <= 3) {
+                box.classList?.add('urgent');
+                dl.style.animation = 'flicker 0.8s infinite';
+                dl.style.color = 'var(--blood)';
+            } else {
+                box.classList?.remove('urgent');
+                dl.style.animation = '';
+            }
+        }
+    },
+
+    addLog(msg, type = "normal") {
+        const logPanel = document.getElementById("colony-log");
+        if (!logPanel) return;
+
+        const day  = GameCore.state?.day ?? 1;
+        const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const stamp = `CIC-${String(day).padStart(3,'0')} // ${time}`;
+
+        const prefixMap = { critical: '[ALERTA]', success: '[OK]', normal: '[>]', warn: '[!]' };
+        const colorMap  = { critical: 'var(--blood)', success: '#5fad3e', normal: 'var(--text-dim)', warn: 'var(--amber)' };
+        const borderMap = { critical: 'var(--blood)', success: 'var(--green-bio)', normal: 'var(--copper)', warn: 'var(--amber)' };
+
+        const entry = document.createElement('div');
+        entry.style.cssText = `
+            font-family:'Share Tech Mono',monospace; font-size:10.5px; line-height:1.55;
+            padding:5px 8px 5px 10px; margin-bottom:3px;
+            border-left:2px solid ${borderMap[type] ?? borderMap.normal};
+            background:${type === 'critical' ? 'rgba(139,0,0,0.07)' : type === 'success' ? 'rgba(45,92,26,0.06)' : 'transparent'};
+            animation:slideInLog 0.3s ease forwards;
+        `;
+        entry.innerHTML = `
+            <span style="color:var(--text-dim);font-size:9px;display:block;margin-bottom:1px;">${stamp}</span>
+            <span style="color:${colorMap[type] ?? colorMap.normal};">${prefixMap[type] ?? '[>]'}</span>
+            <span style="color:var(--text);"> ${msg}</span>
+        `;
+
+        logPanel.prepend(entry);
+
+        // Limite de 60 entradas
+        while (logPanel.children.length > 60) {
+            const last = logPanel.lastChild;
+            if (last) last.remove();
+        }
+    }
+};
+
+// =====================================================================
+// 2. MOTOR ESPACIAL E GRÁFICO (WORLD ENGINE)
+// =====================================================================
+const WorldEngine = {
+    canvas: null, ctx: null,
+    cam: {
+        x: 0, y: 0, targetX: 0, targetY: 0,
+        zoom: 1.0, targetZoom: 1.0,
+        minZoom: 0.4, maxZoom: 2.2,
+        friction: 0.1,
+        isDragging: false, startX: 0, startY: 0,
+        shake: 0
+    },
+    grid: { cellSize: 64, width: 50, height: 50, hoverCell: { x: -1, y: -1 } },
+    particles: [],
+    previewBuilding: null,
+    _frame: 0,
+
+    init() {
+        this.canvas = document.createElement('canvas');
+        this.canvas.style.cssText = 'position:absolute;inset:0;z-index:1;pointer-events:none;';
+        document.body.appendChild(this.canvas);
+        this.ctx = this.canvas.getContext('2d');
+
+        this.setupResizing();
+        this.setupInput();
+        this.generateParticles();
+
+        // Câmera centralizada no grid
+        this.cam.x = this.cam.targetX = -(this.grid.width  * this.grid.cellSize) / 2;
+        this.cam.y = this.cam.targetY = -(this.grid.height * this.grid.cellSize) / 2;
+
+        this.renderLoop();
+    },
+
+    setupResizing() {
+        const resize = () => {
+            this.canvas.width  = window.innerWidth;
+            this.canvas.height = window.innerHeight;
+        };
+        window.addEventListener('resize', resize);
+        resize();
+    },
+
+    setupInput() {
+        const isUI = (e) => e.target.closest('aside') || e.target.closest('header') || e.target.closest('section');
+
+        window.addEventListener('mousedown', (e) => {
+            if (CrisisSystem.isInCrisis || isUI(e)) return;
+            this.cam.isDragging = true;
+            this.cam.startX = e.clientX - this.cam.x;
+            this.cam.startY = e.clientY - this.cam.y;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            const w = this.screenToWorld(e.clientX, e.clientY);
+            this.grid.hoverCell.x = Math.floor(w.x / this.grid.cellSize);
+            this.grid.hoverCell.y = Math.floor(w.y / this.grid.cellSize);
+
+            if (this.cam.isDragging) {
+                const nX = e.clientX - this.cam.startX;
+                const nY = e.clientY - this.cam.startY;
+
+                // Limites de câmera
+                const maxX = (this.grid.width  * this.grid.cellSize) * this.cam.zoom * 0.65;
+                const maxY = (this.grid.height * this.grid.cellSize) * this.cam.zoom * 0.65;
+                this.cam.targetX = Math.max(-maxX, Math.min(maxX, nX));
+                this.cam.targetY = Math.max(-maxY, Math.min(maxY, nY));
+            }
+        });
+
+        window.addEventListener('mouseup', () => { this.cam.isDragging = false; });
+
+        window.addEventListener('wheel', (e) => {
+            if (isUI(e)) return;
+            const factor = e.deltaY * -0.001;
+            this.cam.targetZoom = Math.max(this.cam.minZoom, Math.min(this.cam.maxZoom, this.cam.targetZoom + factor));
+        });
+
+        window.addEventListener('click', (e) => {
+            if (!this.previewBuilding || this.cam.isDragging || isUI(e)) return;
+            const { x: hX, y: hY } = this.grid.hoverCell;
+            if (hX >= 0 && hX < this.grid.width && hY >= 0 && hY < this.grid.height) {
+                const occupied = GameCore.placedBuildings.some(b => b.x === hX && b.y === hY);
+                if (!occupied) {
+                    GameCore.build(this.previewBuilding.id, hX, hY);
+                } else {
+                    UIManager.addLog("Terreno obstruído. Escolha outra célula.", "warn");
+                }
+            }
+        });
+    },
+
+    generateParticles() {
+        const W = window.innerWidth;
+        const H = window.innerHeight;
+        for (let i = 0; i < 50; i++) {
+            this.particles.push({
+                x: Math.random() * W,
+                y: Math.random() * H,
+                size: Math.random() * 2.5 + 0.5,
+                speedY: -(Math.random() * 1.2 + 0.3),
+                speedX: (Math.random() - 0.5) * 0.3,
+                op: Math.random() * 0.12 + 0.02,
+                opSpeed: (Math.random() - 0.5) * 0.004,
+                phase: Math.random() * Math.PI * 2
+            });
+        }
+    },
+
+    setConstructionPreview(buildingId) {
+        if (!buildingId) { this.previewBuilding = null; return; }
+        const item = GameCore.catalog.find(b => b.id === buildingId);
+        this.previewBuilding = item ? { id: buildingId, name: item.name } : null;
+    },
+
+    screenToWorld(sX, sY) {
+        return {
+            x: (sX - window.innerWidth  / 2 - this.cam.x) / this.cam.zoom,
+            y: (sY - window.innerHeight / 2 - this.cam.y) / this.cam.zoom
+        };
+    },
+
+    _drawGlyph(ctx, type, cx, cy) {
+        ctx.save();
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        if (type === 'mina') {
+            ctx.strokeStyle = '#8b5a00';
+            ctx.beginPath();
+            const r = 13, sides = 6;
+            for (let i = 0; i < sides; i++) {
+                const a = (Math.PI / 3) * i - Math.PI / 6;
+                i === 0 ? ctx.moveTo(cx + r*Math.cos(a), cy + r*Math.sin(a))
+                        : ctx.lineTo(cx + r*Math.cos(a), cy + r*Math.sin(a));
+            }
+            ctx.closePath();
+            ctx.stroke();
+            // Raios internos
+            for (let i = 0; i < 3; i++) {
+                const a = (Math.PI / 3) * i;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(a)*5,  cy + Math.sin(a)*5);
+                ctx.lineTo(cx + Math.cos(a)*13, cy + Math.sin(a)*13);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(cx - Math.cos(a)*5,  cy - Math.sin(a)*5);
+                ctx.lineTo(cx - Math.cos(a)*13, cy - Math.sin(a)*13);
+                ctx.stroke();
+            }
+        } else if (type === 'fazenda') {
+            ctx.strokeStyle = '#2d5c1a';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+            ctx.stroke();
+            // 3 pétalas
+            for (let i = 0; i < 3; i++) {
+                const a = (Math.PI * 2 / 3) * i - Math.PI / 2;
+                const px = cx + Math.cos(a) * 10;
+                const py = cy + Math.sin(a) * 10;
+                ctx.beginPath();
+                ctx.arc(px, py, 6, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        } else if (type === 'torre') {
+            ctx.strokeStyle = '#8b0000';
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - 16);
+            ctx.lineTo(cx + 13, cy + 10);
+            ctx.lineTo(cx - 13, cy + 10);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - 4);
+            ctx.lineTo(cx, cy + 7);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx - 5, cy + 3);
+            ctx.lineTo(cx + 5, cy + 3);
+            ctx.stroke();
+        } else if (type === 'caldeira') {
+            ctx.strokeStyle = '#c47000';
+            ctx.strokeRect(cx - 12, cy - 2, 24, 14);
+            ctx.beginPath();
+            ctx.moveTo(cx - 6, cy - 2);
+            ctx.lineTo(cx - 6, cy - 10);
+            ctx.moveTo(cx + 6, cy - 2);
+            ctx.lineTo(cx + 6, cy - 10);
+            ctx.moveTo(cx - 10, cy - 10);
+            ctx.lineTo(cx - 2,  cy - 10);
+            ctx.moveTo(cx + 2,  cy - 10);
+            ctx.lineTo(cx + 10, cy - 10);
+            ctx.stroke();
+            // Linha central
+            ctx.beginPath();
+            ctx.moveTo(cx - 12, cy + 5);
+            ctx.lineTo(cx + 12, cy + 5);
+            ctx.stroke();
+        } else if (type === 'muralha') {
+            ctx.strokeStyle = '#c8b89a';
+            ctx.lineWidth = 2;
+            // Corpo
+            ctx.strokeRect(cx - 14, cy + 2, 28, 12);
+            // Ameias
+            for (let i = 0; i < 3; i++) {
+                const bx = cx - 10 + i * 10;
+                ctx.beginPath();
+                ctx.moveTo(bx, cy + 2);
+                ctx.lineTo(bx, cy - 6);
+                ctx.lineTo(bx + 6, cy - 6);
+                ctx.lineTo(bx + 6, cy + 2);
+                ctx.stroke();
+            }
+        } else if (type === 'oraculo') {
+            ctx.strokeStyle = '#8a6c2a';
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, 14, 8, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillStyle = '#8a6c2a';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    },
+
+    renderLoop() {
+        this._frame++;
+
+        // Interpolação suave da câmera
+        this.cam.x    += (this.cam.targetX    - this.cam.x)    * this.cam.friction;
+        this.cam.y    += (this.cam.targetY    - this.cam.y)    * this.cam.friction;
+        this.cam.zoom += (this.cam.targetZoom - this.cam.zoom) * this.cam.friction;
+
+        // Decaimento do shake
+        if (this.cam.shake > 0.1) this.cam.shake *= 0.88;
+        else this.cam.shake = 0;
+
+        this.render();
+        requestAnimationFrame(() => this.renderLoop());
+    },
+
+    render() {
+        const ctx = this.ctx;
+        const W = this.canvas.width;
+        const H = this.canvas.height;
+        const t = Date.now();
+        const cs = this.grid.cellSize;
+
+        ctx.clearRect(0, 0, W, H);
+
+        // Shake offset
+        const sX = this.cam.shake > 0 ? (Math.random() - 0.5) * this.cam.shake : 0;
+        const sY = this.cam.shake > 0 ? (Math.random() - 0.5) * this.cam.shake : 0;
+
+        ctx.save();
+        ctx.translate(W / 2 + this.cam.x + sX, H / 2 + this.cam.y + sY);
+        ctx.scale(this.cam.zoom, this.cam.zoom);
+
+        const gW = this.grid.width  * cs;
+        const gH = this.grid.height * cs;
+
+        // --- GRID ---
+        for (let i = 0; i <= this.grid.width; i++) {
+            const isMajor = i % 5 === 0;
+            ctx.strokeStyle = isMajor ? 'rgba(74,56,32,0.45)' : 'rgba(42,35,24,0.25)';
+            ctx.lineWidth   = isMajor ? 1.5 : 0.8;
+            ctx.beginPath();
+            ctx.moveTo(i * cs, 0);
+            ctx.lineTo(i * cs, gH);
+            ctx.stroke();
+        }
+        for (let j = 0; j <= this.grid.height; j++) {
+            const isMajor = j % 5 === 0;
+            ctx.strokeStyle = isMajor ? 'rgba(74,56,32,0.45)' : 'rgba(42,35,24,0.25)';
+            ctx.lineWidth   = isMajor ? 1.5 : 0.8;
+            ctx.beginPath();
+            ctx.moveTo(0,  j * cs);
+            ctx.lineTo(gW, j * cs);
+            ctx.stroke();
+        }
+
+        // Nós de interseção
+        ctx.fillStyle = 'rgba(74,56,32,0.4)';
+        for (let i = 0; i <= this.grid.width; i += 5) {
+            for (let j = 0; j <= this.grid.height; j += 5) {
+                ctx.beginPath();
+                ctx.arc(i * cs, j * cs, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Célula hover (sem preview)
+        const { x: hX, y: hY } = this.grid.hoverCell;
+        if (!this.previewBuilding && hX >= 0 && hX < this.grid.width && hY >= 0 && hY < this.grid.height) {
+            ctx.fillStyle = 'rgba(74,56,32,0.12)';
+            ctx.fillRect(hX * cs, hY * cs, cs, cs);
+        }
+
+        // --- EDIFÍCIOS ---
+        const steam = GameCore.state?.steam ?? 100;
+        GameCore.placedBuildings.forEach(b => {
+            const bX = b.x * cs;
+            const bY = b.y * cs;
+            const pad = 7;
+            const active = steam > 20;
+
+            // Fundo do slot
+            ctx.fillStyle = active ? '#0f0f0f' : '#080808';
+            ctx.fillRect(bX + pad, bY + pad, cs - pad*2, cs - pad*2);
+            ctx.strokeStyle = active ? '#4a3820' : '#1a1510';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(bX + pad, bY + pad, cs - pad*2, cs - pad*2);
+
+            // Pulso orgânico
+            if (active) {
+                const pulse = 0.78 + Math.sin(t * 0.0025 + b.x * 1.3 + b.y * 0.9) * 0.22;
+                ctx.globalAlpha = pulse;
+            } else {
+                ctx.globalAlpha = 0.3;
+            }
+
+            // Glifo central
+            this._drawGlyph(ctx, b.type, bX + cs/2, bY + cs/2);
+            ctx.globalAlpha = 1;
+
+            // Sombra/brilho do edifício ativo
+            if (active) {
+                const colorMap = { mina:'rgba(139,90,0,', fazenda:'rgba(45,92,26,', torre:'rgba(139,0,0,', caldeira:'rgba(196,112,0,', muralha:'rgba(200,184,154,', oraculo:'rgba(138,108,42,' };
+                const c = colorMap[b.type] ?? 'rgba(139,90,0,';
+                const glowPulse = 0.08 + Math.sin(t * 0.003 + b.x) * 0.05;
+                ctx.shadowColor = c + '1)';
+                ctx.shadowBlur  = 12 * glowPulse * 8;
+                ctx.fillStyle   = c + (glowPulse * 0.5) + ')';
+                ctx.fillRect(bX + pad + 1, bY + pad + 1, cs - pad*2 - 2, cs - pad*2 - 2);
+                ctx.shadowBlur = 0;
+            }
+        });
+
+        // --- PREVIEW HOLOGRAMA ---
+        if (this.previewBuilding && hX >= 0 && hX < this.grid.width && hY >= 0 && hY < this.grid.height) {
+            const occupied = GameCore.placedBuildings.some(b => b.x === hX && b.y === hY);
+            const hColor   = occupied ? 'rgba(139,0,0,0.35)' : 'rgba(45,92,26,0.35)';
+            const hStroke  = occupied ? '#8b0000' : '#2d5c1a';
+            ctx.fillStyle   = hColor;
+            ctx.strokeStyle = hStroke;
+            ctx.lineWidth   = 1.5;
+            // Pulso do holograma
+            const hp = 0.5 + Math.sin(t * 0.006) * 0.5;
+            ctx.globalAlpha = 0.5 + hp * 0.4;
+            ctx.fillRect(  hX * cs, hY * cs, cs, cs);
+            ctx.strokeRect(hX * cs, hY * cs, cs, cs);
+            ctx.globalAlpha = 1;
+            this._drawGlyph(ctx, this.previewBuilding.id, hX * cs + cs/2, hY * cs + cs/2);
+        }
+
+        ctx.restore();
+
+        // --- PARTÍCULAS (em frente ao grid, atrás da UI) ---
+        this.particles.forEach(p => {
+            p.phase  += 0.012;
+            p.op     += p.opSpeed;
+            if (p.op < 0.01 || p.op > 0.14) p.opSpeed *= -1;
+            p.x += p.speedX + Math.sin(p.phase) * 0.2;
+            p.y += p.speedY;
+            if (p.y < -5) {
+                p.y = H + 5;
+                p.x = Math.random() * W;
+            }
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(138,108,42,${p.op})`;
+            ctx.fill();
+        });
+    }
+};
+
+// =====================================================================
+// 3. SISTEMA DE CRISE (INVASÃO)
+// =====================================================================
+const CrisisSystem = {
+    isInCrisis: false,
+
+    triggerInvasion() {
+        if (this.isInCrisis) return;
+        this.isInCrisis = true;
+
+        const overlay = document.getElementById('combat-overlay');
+        overlay.classList.remove('hidden');
+
+        UIManager.addLog("A CARNE ROMPEU OS PORTÕES. INVASÃO EM CURSO.", "critical");
+        WorldEngine.cam.isDragging = false;
+        WorldEngine.cam.shake = 14;
+
+        // Fase 1 → Fase 2 (após 3s)
+        setTimeout(() => {
+            UIManager.addLog("Calculando resposta de defesa...", "normal");
+            WorldEngine.cam.shake = 8;
+
+            // Fase 2 → Resolução (após mais 3s)
+            setTimeout(() => this.resolveInvasion(), 3000);
+        }, 3000);
+    },
+
+    resolveInvasion() {
+        const day           = GameCore.state.day;
+        const hordeStrength = day * 3;
+        const torreCount    = GameCore.placedBuildings.filter(b => b.type === 'torre').length;
+        const muralhaCont   = GameCore.placedBuildings.filter(b => b.type === 'muralha').length;
+        const defense       = (torreCount * 25) + (muralhaCont * 40);
+
+        UIManager.addLog(`Relatório: Força da Horda ${hordeStrength} vs Defesa ${defense}`, "normal");
+
+        const overlay = document.getElementById('combat-overlay');
+
+        if (defense >= hordeStrength) {
+            // VITÓRIA
+            UIManager.addLog("PURGA CONCLUÍDA. Horda incinerada. +30 Cobre.", "success");
+            GameCore.state.resources.copper += 30;
+            GameCore.state.daysLeft = 7;
+            overlay.classList.add('hidden');
+            this.isInCrisis = false;
+            GameCore.loopInterval = setInterval(() => GameCore.tick(), 5000);
+        } else {
+            // DERROTA PARCIAL
+            const casualties = Math.max(1, Math.floor((hordeStrength - defense) / 5));
+            GameCore.state.resources.population = Math.max(0, GameCore.state.resources.population - casualties);
+            GameCore.state.resources.biomass    = Math.floor(GameCore.state.resources.biomass * 0.6);
+
+            UIManager.addLog(`BRECHA: ${casualties} habitantes mortos. 40% da Biomassa saqueada.`, "critical");
+            WorldEngine.cam.shake = 18;
+
+            if (GameCore.state.resources.population <= 0) {
+                UIManager.addLog("EXTINÇÃO TOTAL. O ÚLTIMO NÚCLEO CAIU.", "critical");
+                overlay.classList.add('hidden');
+                // Game over — não reinicia
+                return;
+            }
+
+            GameCore.state.daysLeft = 7;
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                this.isInCrisis = false;
+                GameCore.loopInterval = setInterval(() => GameCore.tick(), 5000);
+                GameCore.updateAllUI();
+            }, 2000);
+        }
+    }
+};
+
+// =====================================================================
+// 4. NÚCLEO DO JOGO (GAMECORE)
+// =====================================================================
+const GameCore = {
+    state: {
+        day: 1,
+        daysLeft: 7,
+        resources: { biomass: 50, copper: 150, population: 12 },
+        steam: 85
+    },
+
+    catalog: [
+        { id: 'mina',     name: 'Mina de Cobre',        desc: 'Extrai minério bruto da crosta.',      cost: 30  },
+        { id: 'fazenda',  name: 'Tanque de Biomassa',    desc: 'Sintetiza carne para consumo.',         cost: 20  },
+        { id: 'torre',    name: 'Torre de Pólvora',      desc: 'Defesa +25 contra invasores.',          cost: 80  },
+        { id: 'caldeira', name: 'Caldeira de Vapor',     desc: 'Regenera +3% de pressão por dia.',      cost: 45  },
+        { id: 'muralha',  name: 'Muralha de Ferro',      desc: 'Defesa +40. Reduz baixas.',             cost: 60  },
+        { id: 'oraculo',  name: 'Oráculo Biomecânico',   desc: 'Revela e altera eventos futuros.',      cost: 100 }
+    ],
+
+    narrativeEvents: [
+        "Um trabalhador relatou vozes saindo das paredes de cobre.",
+        "Fungos bioluminescentes emergiram no setor leste do núcleo.",
+        "A torre de purgação registrou movimento além da muralha norte.",
+        "Cheiro de carne queimada vindo do subsolo. Origem: desconhecida.",
+        "Três operários pediram permissão para orar ao Núcleo Térmico.",
+        "O vapor saiu com coloração escura nesta manhã. Ninguém sabe o porquê.",
+        "Uma criança foi encontrada falando sequências em código binário.",
+        "Rachaduras em forma de veias apareceram na muralha sul durante a noite.",
+        "O medidor de pressão girou ao contrário por exatamente 7 segundos.",
+        "Alguém deixou flores de metal enferrujado na porta do gerador principal."
+    ],
+
+    placedBuildings: [],
+    loopInterval: null,
+    victoryAchieved: false,
+
+    init() {
+        UIManager.init(this.catalog);
+        WorldEngine.init();
+        this.updateAllUI();
+        this.loopInterval = setInterval(() => this.tick(), 5000);
+    },
+
+    build(id, x, y) {
+        const bldg = this.catalog.find(b => b.id === id);
+        if (!bldg) return;
+
+        if (this.state.resources.copper >= bldg.cost) {
+            this.state.resources.copper -= bldg.cost;
+            this.placedBuildings.push({ x, y, type: id, active: true });
+            WorldEngine.setConstructionPreview(null);
+            UIManager.addLog(`[${bldg.name}] enraizada no quadrante ${x}:${y}.`, "success");
+            this.updateAllUI();
+            // Atualiza os cards para refletir nova quantidade e saldo de cobre
+            UIManager.renderCatalog(this.catalog);
+        } else {
+            UIManager.addLog(`Cobre insuficiente para [${bldg.name}]. Necessário: ${bldg.cost}.`, "critical");
+        }
+    },
+
+    tick() {
+        if (CrisisSystem.isInCrisis) return;
+
+        this.state.day++;
+        this.state.daysLeft--;
+
+        // Decaimento térmico (-5% por dia)
+        this.state.steam = Math.max(0, this.state.steam - 5);
+
+        // Efeito da caldeira (regenera vapor)
+        const caldeiraCount = this.placedBuildings.filter(b => b.type === 'caldeira').length;
+        if (caldeiraCount > 0) {
+            this.state.steam = Math.min(100, this.state.steam + caldeiraCount * 3);
+        }
+
+        // Produção passiva dos edifícios
+        let bioGain = 0, copGain = 0;
+        this.placedBuildings.forEach(b => {
+            if (b.type === 'fazenda') bioGain += 5;
+            if (b.type === 'mina')    copGain  += 8;
+        });
+        this.state.resources.biomass += bioGain;
+        this.state.resources.copper  += copGain;
+
+        // Relatório de produção
+        if (bioGain > 0 || copGain > 0) {
+            UIManager.addLog(`Produção diária: +${bioGain} Biomassa | +${copGain} Cobre`, "normal");
+        }
+
+        // Alertas por limiar
+        if (this.state.resources.biomass < 20 && this.state.resources.biomass > 0) {
+            UIManager.addLog("Biomassa crítica. Racionamento de carne iniciado.", "critical");
+        }
+        if (this.state.resources.copper < 15 && this.state.resources.copper > 0) {
+            UIManager.addLog("Reservas de Cobre quase esgotadas.", "critical");
+        }
+        if (this.state.steam < 30 && this.state.steam > 0) {
+            UIManager.addLog("Pressão térmica crítica. Risco iminente de congelamento.", "critical");
+        }
+
+        // Atualiza estado visual da temperatura
+        const tempEl = document.getElementById('colony-temp');
+        if (tempEl) {
+            if (this.state.steam > 60) {
+                tempEl.textContent = 'ESTÁVEL';
+                tempEl.className   = 'stable';
+            } else if (this.state.steam > 30) {
+                tempEl.textContent = 'ALERTA';
+                tempEl.className   = 'warning';
+            } else {
+                tempEl.textContent = 'CONGELAMENTO';
+                tempEl.className   = 'freezing';
+            }
+        }
+
+        // Evento narrativo aleatório (10% por tick)
+        if (Math.random() < 0.10) {
+            const ev = this.narrativeEvents[Math.floor(Math.random() * this.narrativeEvents.length)];
+            UIManager.addLog(ev, "normal");
+        }
+
+        this.updateAllUI();
+
+        // Verificações de fim de jogo
+        if (this.state.steam <= 0) {
+            UIManager.addLog("FALHA CRÍTICA NO NÚCLEO TÉRMICO. CONGELAMENTO TOTAL.", "critical");
+            clearInterval(this.loopInterval);
+            return;
+        }
+
+        if (this.state.daysLeft <= 0) {
+            clearInterval(this.loopInterval);
+            CrisisSystem.triggerInvasion();
+            return;
+        }
+
+        // Vitória ao sobreviver 30 dias
+        if (this.state.day >= 30 && !this.victoryAchieved) {
+            this.victoryAchieved = true;
+            UIManager.addLog("30 CICLOS COMPLETOS. O NÚCLEO SOBREVIVEU. VITÓRIA DO FEUDO.", "success");
+            clearInterval(this.loopInterval);
+        }
+    },
+
+    updateAllUI() {
+        UIManager.updateResource('biomass',    this.state.resources.biomass);
+        UIManager.updateResource('copper',     this.state.resources.copper);
+        UIManager.updateResource('population', this.state.resources.population);
+        UIManager.updateSteam(this.state.steam);
+        UIManager.updateTime(this.state.day, this.state.daysLeft);
+    }
+};
+
+// =====================================================================
+// BOOT DO SISTEMA
+// =====================================================================
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const loader = document.getElementById('loading-screen');
+        if (loader) {
+            loader.classList.add('fade-out');
+            setTimeout(() => loader.remove(), 1500);
+        }
+        GameCore.init();
+    }, 1500);
+});
+    </script>
+
+</body>
+</html>
